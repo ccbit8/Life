@@ -17,6 +17,8 @@ import {
   TouchableWithoutFeedback,
   View
 } from 'react-native';
+import WechatIcon from '../assets/icons/wechat.svg';
+import WeiboIcon from '../assets/icons/weibo.svg';
 import Logo from '../assets/images/leaf.svg';
 
 // Logo 组件 - 简约的叶子图案
@@ -219,13 +221,31 @@ export default function LoginScreen() {
               </LinearGradient>
             </TouchableOpacity>
 
+            <View style={styles.otherLoginSection}>
+              <ThemedText style={styles.otherLoginText}>其他登录方式</ThemedText>
+              <View style={styles.otherLoginButtons}>
+                <TouchableOpacity style={styles.iconButton}>
+                  <View style={[styles.iconCircle, { backgroundColor: isDark ? '#1f2937' : '#fff' }]}>
+                    <WechatIcon width={32} height={32} />
+                  </View>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.iconButton}>
+                  <View style={[styles.iconCircle, { backgroundColor: isDark ? '#1f2937' : '#fff' }]}>
+                    <WeiboIcon width={32} height={32} />
+                  </View>
+                </TouchableOpacity>
+              </View>
+            </View>
+
             <View style={styles.footer}>
               <ThemedText style={styles.footerText}>
-                登录即表示同意
-                <ThemedText style={styles.link}> 用户协议 </ThemedText>
-                和
-                <ThemedText style={styles.link}> 隐私政策</ThemedText>
+                登录即代表您已阅读并同意
               </ThemedText>
+              <View style={styles.footerLinks}>
+                <ThemedText style={styles.link}>用户协议</ThemedText>
+                <ThemedText style={styles.footerText}> 与 </ThemedText>
+                <ThemedText style={styles.link}>隐私政策</ThemedText>
+              </View>
             </View>
           </View>
         </ThemedView>
@@ -359,21 +379,54 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     letterSpacing: 0.5,
   },
+  otherLoginSection: {
+    marginTop: 48,
+    alignItems: 'center',
+  },
+  otherLoginText: {
+    fontSize: 13,
+    opacity: 0.4,
+    marginBottom: 24,
+  },
+  otherLoginButtons: {
+    flexDirection: 'row',
+    gap: 32,
+    justifyContent: 'center',
+  },
+  iconButton: {
+    alignItems: 'center',
+  },
+  iconCircle: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+    // borderWidth: 1,
+    // borderColor: '#e5e7eb',
+  },
+  iconText: {
+    fontSize: 28,
+  },
   footer: {
-    marginTop: 40,
+    marginTop: 48,
     alignItems: 'center',
   },
   footerText: {
     fontSize: 12,
     opacity: 0.4,
     textAlign: 'center',
-    lineHeight: 18,
+  },
+  footerLinks: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
   },
   link: {
-    color: '#39e29f',
+    color: '#6ee7b7',
+    fontSize: 12,
     opacity: 1,
     fontWeight: '500',
-    fontSize: 14,
     textDecorationLine: 'underline',
   },
 });
