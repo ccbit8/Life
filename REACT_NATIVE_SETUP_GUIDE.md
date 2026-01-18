@@ -243,6 +243,87 @@ iOS
 chmod +x apps/mobileRN/android/gradlew
 ```
 
+### 12. 重命名 iOS 应用（可选）
+
+默认应用名称为 "mobileRN"，如需改为自定义名称（如 "Life"），使用以下步骤：
+
+#### 步骤 1：提交当前改动
+
+```bash
+cd /Users/cc/Git/Life
+git add -A
+git commit -m "chore: prepare for app rename"
+```
+
+#### 步骤 2：使用 react-native-rename 工具
+
+```bash
+cd apps/mobileRN
+
+# 安装并运行重命名工具
+# 语法: npx react-native-rename "新应用名" --bundleID "新的bundle ID"
+npx react-native-rename "Life" --bundleID "com.life.mobile"
+```
+
+**预期输出**：
+```
+ios/Life RENAMED
+ios/Life.xcworkspace RENAMED
+ios/Life.xcodeproj RENAMED
+ios/Life.xcodeproj/xcshareddata/xcschemes/Life.xcscheme RENAMED
+... (多个文件被更新)
+SUCCESS! 🎉 Your app has been renamed to "Life".
+```
+
+#### 步骤 3：清理旧项目配置
+
+```bash
+# 清除 watchman 缓存
+watchman watch-del-all
+
+# 进入 iOS 目录
+cd apps/mobileRN/ios
+
+# 删除旧的 Pods 和锁文件
+rm -rf Pods Podfile.lock
+
+# 重新安装 iOS 依赖
+bundle exec pod install
+```
+
+#### 步骤 4：清除 Metro 缓存并重新运行
+
+```bash
+# 回到项目根目录
+cd /Users/cc/Git/Life
+
+# 清除 Metro bundler 缓存
+rm -rf apps/mobileRN/.metro-cache
+
+# 重新运行应用
+pnpm ios
+```
+
+#### 验证重命名成功
+
+检查以下几点：
+
+- ✅ Xcode 工作区文件: `ios/Life.xcworkspace` 存在
+- ✅ 模拟器应用名称显示为: **Life**
+- ✅ Bundle ID: **com.life.mobile** (或你设置的 ID)
+- ✅ Xcode 中的 scheme 名称: **Life**
+
+**什么被重命名了**:
+
+| 项目 | 旧值 | 新值 |
+|------|------|------|
+| 应用显示名 | mobileRN | Life |
+| Bundle ID | org.reactjs.native.example.mobileRN | com.life.mobile |
+| iOS 项目 | ios/mobileRN.xcodeproj | ios/Life.xcodeproj |
+| Xcode Scheme | mobileRN | Life |
+| 项目文件夹 | ios/mobileRN | ios/Life |
+| Android 包名 | com.reactnativemobiern | com.life.mobile |
+
 ---
 
 ## Windows 安装步骤

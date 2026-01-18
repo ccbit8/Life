@@ -1,4 +1,4 @@
-package com.mobilern
+package com.life.mobile
 
 import android.app.Application
 import com.facebook.react.PackageList
