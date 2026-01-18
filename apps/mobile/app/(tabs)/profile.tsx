@@ -3,7 +3,8 @@ import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useColorScheme } from "@/hooks/use-color-scheme";
-import useAuth from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/useAuth";
+import { useRouter } from "expo-router";
 import React from "react";
 import {
   Platform,
