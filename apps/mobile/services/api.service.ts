@@ -1,4 +1,5 @@
-import { API_CONFIG, API_ENDPOINTS } from './api.config';
+import { useAuthStore } from "@/store";
+import { API_CONFIG, API_ENDPOINTS } from "./api.config";
 
 interface ApiResponse<T = any> {
   success: boolean;
@@ -10,29 +11,33 @@ interface ApiResponse<T = any> {
 class ApiService {
   private async request<T = any>(
     endpoint: string,
-    options: RequestInit = {}
+    options: RequestInit = {},
   ): Promise<T> {
     const url = `${API_CONFIG.baseURL}${endpoint}`;
-    
+    const { token } = useAuthStore.getState();
+
     const config: RequestInit = {
       ...options,
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...options.headers,
       },
     };
 
     try {
       const response = await fetch(url, config);
-      
+
       if (!response.ok) {
         const error = await response.json().catch(() => ({}));
-        throw new Error(error.message || `HTTP error! status: ${response.status}`);
+        throw new Error(
+          error.message || `HTTP error! status: ${response.status}`,
+        );
       }
-      
+
       return await response.json();
     } catch (error) {
-      console.error('API request failed:', error);
+      console.error("API request failed:", error);
       throw error;
     }
   }
@@ -40,7 +45,7 @@ class ApiService {
   // 发送验证码
   async sendVerificationCode(phoneNumber: string): Promise<ApiResponse> {
     return this.request(API_ENDPOINTS.auth.sendCode, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify({ phoneNumber }),
     });
   }
@@ -48,7 +53,7 @@ class ApiService {
   // 验证码登录
   async verifyCode(phoneNumber: string, code: string): Promise<ApiResponse> {
     return this.request(API_ENDPOINTS.auth.verifyCode, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify({ phoneNumber, code }),
     });
   }
@@ -56,7 +61,7 @@ class ApiService {
   // 获取用户信息
   async getUser(id: string): Promise<ApiResponse> {
     return this.request(API_ENDPOINTS.users.getUser(id), {
-      method: 'GET',
+      method: "GET",
     });
   }
 }
