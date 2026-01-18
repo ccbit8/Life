@@ -3,10 +3,11 @@
 ## 📋 目录
 
 1. [环境要求](#环境要求)
-2. [安装步骤](#安装步骤)
-3. [Monorepo 集成](#monorepo-集成)
-4. [故障排除](#故障排除)
-5. [快速参考](#快速参考)
+2. [Windows 安装步骤](#windows-安装步骤)
+3. [macOS 安装步骤](#macos-安装步骤)
+4. [Monorepo 集成](#monorepo-集成)
+5. [故障排除](#故障排除)
+6. [快速参考](#快速参考)
 
 ---
 
@@ -14,25 +15,239 @@
 
 ### 系统要求
 
-- **操作系统**: Windows 10/11
-- **Node.js**: 20.x 或更高版本
-- **包管理器**: pnpm 10.x
+| 平台 | 要求 | 支持平台 |
+|------|------|----------|
+| **Windows** | Windows 10/11 | ✅ Android 开发 |
+| **macOS** | macOS 10.15+ (Catalina 或更高) | ✅ iOS + Android 开发 |
+| **共同要求** | Node.js 20.x+, pnpm 10.x | 所有平台 |
+
+> **为什么 Windows 不需要 Ruby？**  
+> iOS 开发只能在 macOS 上进行（需要 Xcode），CocoaPods（iOS 依赖管理器）依赖 Ruby。Windows 只支持 Android 开发，无需 Ruby/CocoaPods。
 
 ### 开发工具版本
 
-| 工具                | 版本             | 说明            |
-| ------------------- | ---------------- | --------------- |
-| Java                | 17 LTS (Temurin) | 推荐用于 Gradle |
-| Android SDK         | API 36           | 应用编译目标    |
-| Android Build Tools | 36.0.0           | 构建工具        |
-| NDK                 | 27.1.12297006    | 原生代码编译    |
-| Gradle              | 8.13             | 构建系统        |
-| React Native        | 0.83.1           | 应用框架        |
-| Metro               | 0.83.3           | JS bundler      |
+| 工具                | 版本             | Windows | macOS | 说明            |
+| ------------------- | ---------------- | ------- | ----- | --------------- |
+| Java                | 17 LTS (Temurin) | ✅ | ✅ | 推荐用于 Gradle |
+| Android SDK         | API 36           | ✅ | ✅ | 应用编译目标    |
+| Android Build Tools | 36.0.0           | ✅ | ✅ | 构建工具        |
+| NDK                 | 27.1.12297006    | ✅ | ✅ | 原生代码编译    |
+| Gradle              | 8.13             | ✅ | ✅ | 构建系统        |
+| Ruby                | 3.3+             | ❌ | ✅ | iOS 依赖管理    |
+| CocoaPods           | 1.10+            | ❌ | ✅ | iOS 包管理器    |
+| Xcode               | 15+              | ❌ | ✅ | iOS 开发必需    |
+| React Native        | 0.83.1           | ✅ | ✅ | 应用框架        |
+| Metro               | 0.83.3           | ✅ | ✅ | JS bundler      |
 
 ---
 
-## 安装步骤
+## macOS 安装步骤
+
+### 1. 安装 Homebrew（如果尚未安装）
+
+```bash
+# 安装 Homebrew
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+# 验证安装
+brew --version
+```
+
+### 2. 安装 Node.js 和 pnpm
+
+```bash
+# 安装 Node.js 20+
+brew install node@20
+
+# 安装 pnpm
+npm install -g pnpm
+
+# 验证安装
+node -v      # v20.x 或更高
+pnpm -v      # 10.x 或更高
+```
+
+### 3. 安装 rbenv 和 Ruby（iOS 开发必需）
+
+#### 为什么需要 Ruby？
+- **CocoaPods** 是 iOS 依赖管理器，用 Ruby 编写
+- macOS 系统自带的 Ruby（2.6）**太旧**，CocoaPods 需要 Ruby 3.0+
+- 使用 **rbenv** 管理 Ruby 版本，避免与系统 Ruby 冲突
+
+#### 安装步骤
+
+```bash
+# 1. 安装 rbenv 和 ruby-build
+brew install rbenv ruby-build
+
+# 2. 初始化 rbenv（添加到 shell 配置）
+echo 'eval "$(rbenv init - zsh)"' >> ~/.zshrc
+source ~/.zshrc
+
+# 3. 安装 Ruby 3.3.6
+rbenv install 3.3.6
+
+# 4. 设置全局 Ruby 版本
+rbenv global 3.3.6
+
+# 5. 验证 Ruby 版本
+ruby -v  # 应显示 ruby 3.3.6
+```
+
+### 4. 安装 CocoaPods（通过 Bundler）
+
+#### 为什么使用 Bundler？
+- 确保项目团队使用相同版本的 CocoaPods
+- 避免全局 gem 冲突
+- 项目依赖隔离
+
+```bash
+# 进入 mobileRN 项目
+cd apps/mobileRN
+
+# 安装 Bundler（如果尚未安装）
+gem install bundler
+
+# 使用 Bundler 安装 CocoaPods 和项目依赖
+bundle install
+
+# 验证 CocoaPods
+bundle exec pod --version  # 应显示 >= 1.10.0
+```
+
+### 5. 安装 iOS 依赖
+
+```bash
+# 进入 iOS 目录
+cd apps/mobileRN/ios
+
+# 安装 CocoaPods 依赖
+bundle exec pod install
+
+# ⚠️ 重要：安装后使用 .xcworkspace 文件而不是 .xcodeproj
+# 打开方式：open mobileRN.xcworkspace
+```
+
+**预期输出**:
+```
+Pod installation complete! There are 82 dependencies from the Podfile and 81 total pods installed.
+```
+
+### 6. 安装 Xcode 和命令行工具
+
+```bash
+# 从 App Store 安装 Xcode（15+ 版本）
+# 然后安装命令行工具
+xcode-select --install
+
+# 接受 Xcode 许可协议
+sudo xcodebuild -license accept
+
+# 验证安装
+xcodebuild -version
+```
+
+### 7. 安装 Java（Android 开发）
+
+```bash
+# 使用 Homebrew 安装 Java 17
+brew install --cask temurin@17
+
+# 配置 JAVA_HOME（添加到 ~/.zshrc）
+echo 'export JAVA_HOME=$(/usr/libexec/java_home -v 17)' >> ~/.zshrc
+source ~/.zshrc
+
+# 验证安装
+java -version  # 应显示 Java 17
+```
+
+### 8. 安装 Android Studio 和 SDK
+
+```bash
+# 使用 Homebrew 安装 Android Studio
+brew install --cask android-studio
+```
+
+**初始化 Android SDK**：
+
+1. 首次启动 Android Studio
+2. 选择 "Standard" 安装
+3. SDK 默认路径: `~/Library/Android/sdk`
+4. 配置环境变量：
+
+```bash
+# 添加到 ~/.zshrc
+cat >> ~/.zshrc << 'EOF'
+export ANDROID_HOME=$HOME/Library/Android/sdk
+export PATH=$PATH:$ANDROID_HOME/emulator
+export PATH=$PATH:$ANDROID_HOME/platform-tools
+EOF
+
+# 刷新环境
+source ~/.zshrc
+```
+
+**安装 SDK 组件**（通过 Android Studio SDK Manager）：
+
+- ✅ Android SDK Platform 36
+- ✅ Android SDK Build-Tools 36.0.0
+- ✅ Android SDK Command-line Tools
+- ✅ Android Emulator
+- ✅ NDK 27.1.12297006
+
+### 9. 安装 Watchman（推荐）
+
+```bash
+# 监视文件变化，提高 Metro Bundler 性能
+brew install watchman
+
+# 验证安装
+watchman --version
+```
+
+### 10. 验证环境配置
+
+```bash
+# 进入 mobileRN 目录
+cd apps/mobileRN
+
+# 运行 React Native 诊断工具
+npx react-native doctor
+```
+
+**预期输出**：
+```
+Common
+ ✓ Node.js
+ ✓ npm
+ ✓ Watchman
+ ✓ Metro
+
+Android
+ ✓ JDK
+ ✓ Android Studio
+ ✓ ANDROID_HOME
+ ✓ Gradlew
+ ✓ Android SDK
+
+iOS
+ ✓ Xcode
+ ✓ Ruby
+ ✓ CocoaPods
+ ✓ .xcode.env
+```
+
+### 11. 修复 Gradlew 权限（如果出错）
+
+```bash
+chmod +x apps/mobileRN/android/gradlew
+```
+
+---
+
+## Windows 安装步骤
+
+> **注意**：Windows 上只能开发 Android 应用，无法进行 iOS 开发。
 
 ### 1. 安装 Java Development Kit (JDK)
 
