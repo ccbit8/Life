@@ -1,6 +1,28 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Platform } from "react-native";
 import { create } from "zustand";
-import { createJSONStorage, persist } from "zustand/middleware";
+import { createJSONStorage, persist, StateStorage } from "zustand/middleware";
+
+// Web 兼容的 storage
+const webStorage: StateStorage = {
+  getItem: async (name) => {
+    try {
+      return localStorage.getItem(name);
+    } catch {
+      return null;
+    }
+  },
+  setItem: async (name, value) => {
+    try {
+      localStorage.setItem(name, value);
+    } catch {}
+  },
+  removeItem: async (name) => {
+    try {
+      localStorage.removeItem(name);
+    } catch {}
+  },
+};
 
 export interface User {
   id: string;
@@ -14,11 +36,13 @@ export interface AuthState {
   token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  _hasHydrated: boolean;
 
   // 操作
   setUser: (user: User | null) => void;
   setToken: (token: string | null) => void;
   setLoading: (loading: boolean) => void;
+  setHasHydrated: (hydrated: boolean) => void;
   login: (user: User, token: string) => Promise<void>;
   logout: () => Promise<void>;
   restoreSession: () => Promise<boolean>;
@@ -31,6 +55,7 @@ export const useAuthStore = create<AuthState>()(
       token: null,
       isAuthenticated: false,
       isLoading: false,
+      _hasHydrated: false,
 
       setUser: (user) => {
         set({ user, isAuthenticated: !!user });
@@ -42,6 +67,10 @@ export const useAuthStore = create<AuthState>()(
 
       setLoading: (loading) => {
         set({ isLoading: loading });
+      },
+
+      setHasHydrated: (hydrated) => {
+        set({ _hasHydrated: hydrated });
       },
 
       login: async (user: User, token: string) => {
@@ -60,7 +89,12 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: "life.auth.session",
-      storage: createJSONStorage(() => AsyncStorage),
+      storage: createJSONStorage(() =>
+        Platform.OS === "web" ? webStorage : AsyncStorage,
+      ),
+      onRehydrateStorage: () => (state) => {
+        state?.setHasHydrated(true);
+      },
       partialize: (state) => ({
         user: state.user,
         token: state.token,

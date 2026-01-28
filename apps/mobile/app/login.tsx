@@ -1,4 +1,5 @@
 import { authActions } from "@/actions/auth";
+import { CustomAlertDialog } from "@/components/alert-dialog";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { useColorScheme } from "@/hooks/use-color-scheme";
@@ -7,7 +8,6 @@ import { useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
@@ -36,23 +36,53 @@ export default function LoginScreen() {
   const router = useRouter();
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  // Alert 状态
+  const [alertOpen, setAlertOpen] = useState(false);
+  const [alertTitle, setAlertTitle] = useState("");
+  const [alertMessage, setAlertMessage] = useState("");
+  const [alertType, setAlertType] = useState<
+    "info" | "success" | "error" | "warning"
+  >("info");
+  const [alertCallback, setAlertCallback] = useState<(() => void) | null>(null);
+
   const isDark = colorScheme === "dark";
+
+  // 显示 Alert 的辅助函数
+  const showAlert = (
+    title: string,
+    message: string,
+    type: "info" | "success" | "error" | "warning" = "info",
+    callback?: () => void,
+  ) => {
+    setAlertTitle(title);
+    setAlertMessage(message);
+    setAlertType(type);
+    setAlertCallback(() => callback);
+    setAlertOpen(true);
+  };
 
   useEffect(() => {
     let mounted = true;
 
-    const bootstrap = async () => {
-      const hasSession = await authActions.restoreSession();
-      const isAuth = authActions.isAuthenticated();
-      if (mounted && hasSession && isAuth) {
-        router.replace("/(tabs)");
+    // 异步检查会话（非阻塞）
+    const checkSession = async () => {
+      try {
+        const hasSession = await authActions.restoreSession();
+        const isAuth = authActions.isAuthenticated();
+        if (mounted && hasSession && isAuth) {
+          router.replace("/(tabs)");
+        }
+      } catch (error) {
+        console.error("Session restore error:", error);
       }
     };
 
-    bootstrap();
+    // 延迟执行，不阻塞初始渲染
+    const timer = setTimeout(checkSession, 100);
 
     return () => {
       mounted = false;
+      clearTimeout(timer);
       if (timerRef.current) {
         clearInterval(timerRef.current);
       }
@@ -63,7 +93,7 @@ export default function LoginScreen() {
     // 验证手机号格式
     const phoneRegex = /^1[3-9]\d{9}$/;
     if (!phoneRegex.test(phoneNumber)) {
-      Alert.alert("提示", "请输入正确的手机号码");
+      showAlert("提示", "请输入正确的手机号码");
       return;
     }
 
@@ -74,7 +104,7 @@ export default function LoginScreen() {
 
       if (response.success) {
         setCountdown(60);
-        Alert.alert("成功", "验证码已发送");
+        showAlert("成功", "验证码已发送", "success");
 
         // 倒计时
         if (timerRef.current) {
@@ -92,12 +122,13 @@ export default function LoginScreen() {
           });
         }, 1000);
       } else {
-        Alert.alert("失败", response.message || "发送验证码失败");
+        showAlert("失败", response.message || "发送验证码失败", "error");
       }
     } catch (error: any) {
-      Alert.alert(
+      showAlert(
         "错误",
         error.message || "网络请求失败，请检查后端服务是否启动",
+        "error",
       );
     } finally {
       setSendingCode(false);
@@ -106,7 +137,7 @@ export default function LoginScreen() {
 
   const handleLogin = async () => {
     if (!phoneNumber || !verificationCode) {
-      Alert.alert("提示", "请输入手机号和验证码");
+      showAlert("提示", "请输入手机号和验证码");
       return;
     }
 
@@ -117,19 +148,20 @@ export default function LoginScreen() {
       const response = await authActions.login(phoneNumber, verificationCode);
 
       if (response.success) {
-        Alert.alert("登录成功", `欢迎 ${response.user?.phoneNumber}`, [
-          {
-            text: "确定",
-            onPress: () => router.replace("/(tabs)"),
-          },
-        ]);
+        showAlert(
+          "登录成功",
+          `欢迎 ${response.user?.phoneNumber}`,
+          "success",
+          () => router.replace("/(tabs)"),
+        );
       } else {
-        Alert.alert("失败", response.message || "登录失败");
+        showAlert("失败", response.message || "登录失败", "error");
       }
     } catch (error: any) {
-      Alert.alert(
+      showAlert(
         "错误",
         error.message || "网络请求失败，请检查后端服务是否启动",
+        "error",
       );
     } finally {
       setLoggingIn(false);
@@ -303,6 +335,15 @@ export default function LoginScreen() {
             </View>
           </View>
         </ThemedView>
+
+        <CustomAlertDialog
+          title={alertTitle}
+          message={alertMessage}
+          open={alertOpen}
+          onOpenChange={setAlertOpen}
+          type={alertType}
+          onConfirm={alertCallback || undefined}
+        />
       </KeyboardAvoidingView>
     </TouchableWithoutFeedback>
   );

@@ -2,7 +2,7 @@
 export const API_CONFIG = {
   // 开发环境
   baseURL: __DEV__
-    ? "http://192.168.0.102:3000"
+    ? "http://192.168.0.103:3000"
     : "https://your-production-api.com",
 
   timeout: 10000,
